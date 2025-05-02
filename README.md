@@ -61,14 +61,42 @@ python manage.py migrate
 6. Create superuser:
 ```bash
 python manage.py createsuperuser
+
+### Redis set up  (used as memory cash for real time communications) recommended to install it with WLS
+1. Install WSL ###by default it will install ubentu, you need to set a username and password for linux
+               ###you need to restart your pc to make everything works
+
+  wsl --install #in the terminal
+2. Launch WSL and install Redis there: #in wsl shell (just type wsl in the terminal you will open it)
+  sudo apt update
+  sudo apt install redis-server ### check if installed  (redis-cli --version)
+3. Configure Redis
+  sudo nano /etc/redis/redis.conf
+    Find bind 127.0.0.1 ::1 and change it to bind 0.0.0.0
+    supervised systemd #just type it beneath bind configuration
+    save and exit
+4. Restart Redis service
+  sudo systemctl restart redis-server 
+  # Check Redis status
+  sudo systemctl status redis-server
+  # if you encounter any problems just uninstall it and then reinstall it
+  sudo apt remove --purge redis-server
+
+### would never been done without Claud.Ai <<3
+
 ```
 
-7. Start the development server:
+7. Start the development server (to handle http requests):
 ```bash
 python manage.py runserver
 ```
+8. Start the server with daphne (on another port than 8000) to handle websocket requests
+daphne -p 8001  depannini.asgi:application
 
-## API Endpoints
+
+
+
+
 
 ### Authentication
 

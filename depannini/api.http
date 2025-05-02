@@ -1,0 +1,85 @@
+POST http://localhost:8000/api/auth/register/ HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "anes",
+    "password": "testing321",
+    "password_confirm": "testing321",
+    "phone_number": "0658025174",
+    "user_type": "assistant",
+    "service_type": "towing",
+    "vehicle_type": "towing truck",
+    "location": {"longitude": 2342, "latitude": 243},
+    "driving_license_cat": "b",
+    "driving_license_num": 54543344,
+    "driving_license_expiry": "20:08:2026"
+}
+
+###
+
+POST http://localhost:8000/api/auth/login/phone/ HTTP/1.1
+Content-Type: application/json
+
+{
+    "phone_number": "0658025171",
+    "password": "testing321"
+}
+
+###
+
+POST http://localhost:8000/api/auth/login/email/ HTTP/1.1
+Content-Type: application/json
+
+{
+    "email": "anesadjal33@gmail.com",
+    "password": "test"
+}
+
+###
+GET http://localhost:8000/api/profile/user/ HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ1NjA0NzM4LCJpYXQiOjE3NDU2MDExMzgsImp0aSI6IjYwZDhmZjFkYzNiYTRiYzFiM2M4NjcxM2U0MzMwODliIiwidXNlcl9pZCI6MTd9.M_wXq0cwnGrsa43GICE--E6YUs7eQbFKc6qqrSoTMhk
+###
+get http://localhost:8000/api/assistants/ HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ1NjA0NzM4LCJpYXQiOjE3NDU2MDExMzgsImp0aSI6IjYwZDhmZjFkYzNiYTRiYzFiM2M4NjcxM2U0MzMwODliIiwidXNlcl9pZCI6MTd9.M_wXq0cwnGrsa43GICE--E6YUs7eQbFKc6qqrSoTMhk
+
+{
+    "vehicle_registration_num": "4342342"
+}
+
+###
+
+POST http://localhost:8000/api/assistance/request/ HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ2MjY1NTUzLCJpYXQiOjE3NDU2NjA3NTMsImp0aSI6ImY1ZDdjMGY4M2JlNjQwNzhiYmFlZDljMTI5ODZiYmM3IiwidXNlcl9pZCI6OX0.RC-03OtCxg4NH6jROmEjp7iHODWWrANG9ahTOCrYzhc
+
+{
+    "pickup": {
+        "lat" : 34.052235,
+        "lng" : -118.243683
+    }
+}
+
+###
+
+Patch http://localhost:8000/api/assistance/accept/32/ HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ2MjkxMTAxLCJpYXQiOjE3NDU2ODYzMDEsImp0aSI6IjRmM2U0YjEzOTRjNDQ3MmFhODQ4ODBmZTdkNGU3MjUyIiwidXNlcl9pZCI6MTd9.vUINAeoFTlw7OSluueNXOIE3rLBFYHaYz5KZSSsTkPo
+
+###
+
+Patch http://localhost:8000/api/assistance/update/32/ HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ2MjkxMTAxLCJpYXQiOjE3NDU2ODYzMDEsImp0aSI6IjRmM2U0YjEzOTRjNDQ3MmFhODQ4ODBmZTdkNGU3MjUyIiwidXNlcl9pZCI6MTd9.vUINAeoFTlw7OSluueNXOIE3rLBFYHaYz5KZSSsTkPo
+
+{
+    "status" : "canceled"
+}
+
+###
+
+GET http://localhost:8000/api/assistance/view/31/ HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ2MjY1NTUzLCJpYXQiOjE3NDU2NjA3NTMsImp0aSI6ImY1ZDdjMGY4M2JlNjQwNzhiYmFlZDljMTI5ODZiYmM3IiwidXNlcl9pZCI6OX0.RC-03OtCxg4NH6jROmEjp7iHODWWrANG9ahTOCrYzhc
+

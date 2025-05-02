@@ -4,13 +4,15 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django import forms
 
-from .models import User, VerificationCode
+
+from .models import User, VerificationCode, Assistance
 
 
 class UserCreationForm(forms.ModelForm):
     """Form for creating new users in admin panel"""
     password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
-    password2 = forms.CharField(label='Password confirmation', widget=forms.PasswordInput)
+    password2 = forms.CharField(
+        label='Password confirmation', widget=forms.PasswordInput)
 
     class Meta:
         model = User
@@ -52,25 +54,29 @@ class UserAdmin(BaseUserAdmin):
     form = UserChangeForm
     add_form = UserCreationForm
 
-    list_display = ('email', 'name', 'phone_number', 'user_type', 'is_staff', 'email_verified', 'phone_verified')
+    list_display = ('email', 'name', 'phone_number', 'user_type',
+                    'is_staff', 'email_verified', 'phone_verified')
     list_filter = ('is_staff', 'user_type', 'email_verified', 'phone_verified')
-    
+
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        ('Personal info', {'fields': ('name', 'phone_number', 'profile_photo', 'location', 'address')}),
-        ('Assistant info', {'fields': ('user_type', 'service_type', 'vehicle_type', 'is_active_assistant')}),
-        ('Verification status', {'fields': ('email_verified', 'phone_verified')}),
+        ('Personal info', {'fields': ('name', 'phone_number',
+         'profile_photo', 'location', 'address')}),
+        ('Assistant info', {'fields': (
+            'user_type', 'service_type', 'vehicle_type', 'is_active_assistant', 'current_lat', 'current_lng')}),
+        ('Verification status', {
+         'fields': ('email_verified', 'phone_verified')}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser',
-                                   'groups', 'user_permissions')}),
+                                    'groups', 'user_permissions')}),
     )
-    
+
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
             'fields': ('email', 'name', 'phone_number', 'password1', 'password2', 'user_type'),
         }),
     )
-    
+
     search_fields = ('email', 'name', 'phone_number')
     ordering = ('email',)
     filter_horizontal = ('groups', 'user_permissions',)
@@ -78,7 +84,8 @@ class UserAdmin(BaseUserAdmin):
 
 class VerificationCodeAdmin(admin.ModelAdmin):
     """Configure the admin interface for VerificationCode model"""
-    list_display = ('user', 'code', 'code_type', 'created_at', 'expires_at', 'is_used')
+    list_display = ('user', 'code', 'code_type',
+                    'created_at', 'expires_at', 'is_used')
     list_filter = ('code_type', 'is_used')
     search_fields = ('user__email', 'user__name', 'code')
 
@@ -86,3 +93,4 @@ class VerificationCodeAdmin(admin.ModelAdmin):
 # Register the models with admin site
 admin.site.register(User, UserAdmin)
 admin.site.register(VerificationCode, VerificationCodeAdmin)
+admin.site.register(Assistance)

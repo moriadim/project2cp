@@ -66,60 +66,59 @@ def get_tokens_for_user(user):
 
 class RegisterView(views.APIView):
     permission_classes = [AllowAny]
-    
+
     def post(self, request):
         serializer = UserRegistrationSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            
             # Generate and send email verification code
-            code = generate_verification_code()
-            expiry = timezone.now() + timedelta(minutes=30)
-            VerificationCode.objects.create(
-                user=user,
-                code=code,
-                code_type='email',
-                expires_at=expiry
-            )
-            send_verification_email(user, code)
-            
+            # code = generate_verification_code()
+            # expiry = timezone.now() + timedelta(minutes=30)
+            # VerificationCode.objects.create(
+           #     user=user,
+           #     code=code,
+          #      code_type='email',
+          #      expires_at=expiry
+          #  )
+          #  send_verification_email(user, code)
+
             # If phone number is provided, send verification code
-            if user.phone_number:
-                phone_code = generate_verification_code()
-                VerificationCode.objects.create(
-                    user=user,
-                    code=phone_code,
-                    code_type='phone',
-                    expires_at=expiry
-                )
-                send_sms_verification(user.phone_number, phone_code)
-            
+          #  if user.phone_number:
+          #      phone_code = generate_verification_code()
+          #      VerificationCode.objects.create(
+          #          user=user,
+            #        code=phone_code,
+          #          code_type='phone',
+          #          expires_at=expiry
+          #      )
+         #       send_sms_verification(user.phone_number, phone_code)
+
             # Generate JWT tokens
-            tokens = get_tokens_for_user(user)
-            
+           # tokens = get_tokens_for_user(user)
+
             return Response({
-                'tokens': tokens,
+                # 'tokens': tokens,
                 'user': {
                     'id': user.id,
                     'email': user.email,
                     'name': user.name,
+                    'phone_number': user.phone_number,
                     'user_type': user.user_type,
-                    'email_verified': user.email_verified,
-                    'phone_verified': user.phone_verified
                 }
             }, status=status.HTTP_201_CREATED)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class EmailVerificationView(views.APIView):
     permission_classes = [IsAuthenticated]
-    
+
     def post(self, request):
         serializer = EmailVerificationSerializer(data=request.data)
         if serializer.is_valid():
             try:
-                user = User.objects.get(email=serializer.validated_data['email'])
+                user = User.objects.get(
+                    email=serializer.validated_data['email'])
                 verification = VerificationCode.objects.filter(
                     user=user,
                     code=serializer.validated_data['code'],
@@ -127,13 +126,13 @@ class EmailVerificationView(views.APIView):
                     is_used=False,
                     expires_at__gt=timezone.now()
                 ).latest('created_at')
-                
+
                 verification.is_used = True
                 verification.save()
-                
+
                 user.email_verified = True
                 user.save()
-                
+
                 return Response({
                     'success': True,
                     'message': 'Email successfully verified'
@@ -143,18 +142,19 @@ class EmailVerificationView(views.APIView):
                     'success': False,
                     'message': 'Invalid verification code'
                 }, status=status.HTTP_400_BAD_REQUEST)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PhoneVerificationView(views.APIView):
     permission_classes = [IsAuthenticated]
-    
+
     def post(self, request):
         serializer = PhoneVerificationSerializer(data=request.data)
         if serializer.is_valid():
             try:
-                user = User.objects.get(phone_number=serializer.validated_data['phone_number'])
+                user = User.objects.get(
+                    phone_number=serializer.validated_data['phone_number'])
                 verification = VerificationCode.objects.filter(
                     user=user,
                     code=serializer.validated_data['code'],
@@ -162,13 +162,13 @@ class PhoneVerificationView(views.APIView):
                     is_used=False,
                     expires_at__gt=timezone.now()
                 ).latest('created_at')
-                
+
                 verification.is_used = True
                 verification.save()
-                
+
                 user.phone_verified = True
                 user.save()
-                
+
                 return Response({
                     'success': True,
                     'message': 'Phone number successfully verified'
@@ -178,30 +178,31 @@ class PhoneVerificationView(views.APIView):
                     'success': False,
                     'message': 'Invalid verification code'
                 }, status=status.HTTP_400_BAD_REQUEST)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PasswordResetRequestView(views.APIView):
     permission_classes = [AllowAny]
-    
+
     def post(self, request):
         serializer = PasswordResetRequestSerializer(data=request.data)
         if serializer.is_valid():
             try:
-                user = User.objects.get(email=serializer.validated_data['email'])
+                user = User.objects.get(
+                    email=serializer.validated_data['email'])
                 code = generate_verification_code()
                 expiry = timezone.now() + timedelta(minutes=30)
-                
+
                 VerificationCode.objects.create(
                     user=user,
                     code=code,
                     code_type='password',
                     expires_at=expiry
                 )
-                
+
                 send_password_reset_email(user, code)
-                
+
                 return Response({
                     'success': True,
                     'message': 'Password reset code sent to your email'
@@ -212,18 +213,19 @@ class PasswordResetRequestView(views.APIView):
                     'success': True,
                     'message': 'If your email is registered, you will receive a password reset code'
                 }, status=status.HTTP_200_OK)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PasswordResetConfirmView(views.APIView):
     permission_classes = [AllowAny]
-    
+
     def post(self, request):
         serializer = PasswordResetConfirmSerializer(data=request.data)
         if serializer.is_valid():
             try:
-                user = User.objects.get(email=serializer.validated_data['email'])
+                user = User.objects.get(
+                    email=serializer.validated_data['email'])
                 verification = VerificationCode.objects.filter(
                     user=user,
                     code=serializer.validated_data['code'],
@@ -231,16 +233,16 @@ class PasswordResetConfirmView(views.APIView):
                     is_used=False,
                     expires_at__gt=timezone.now()
                 ).latest('created_at')
-                
+
                 verification.is_used = True
                 verification.save()
-                
+
                 user.set_password(serializer.validated_data['new_password'])
                 user.save()
-                
+
                 # Generate new tokens
                 tokens = get_tokens_for_user(user)
-                
+
                 return Response({
                     'success': True,
                     'message': 'Password successfully reset',
@@ -251,22 +253,29 @@ class PasswordResetConfirmView(views.APIView):
                     'success': False,
                     'message': 'Invalid reset code'
                 }, status=status.HTTP_400_BAD_REQUEST)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class EmailLoginView(views.APIView):
     permission_classes = [AllowAny]
-    
+
     def post(self, request):
         serializer = EmailLoginSerializer(data=request.data)
         if serializer.is_valid():
-            user = authenticate(
-                request,
-                username=serializer.validated_data['email'],  # Django uses username field for authentication
-                password=serializer.validated_data['password']
-            )
-            
+            try:
+                phone_number = User.objects.filter(
+                    email=serializer.validated_data['email']).first().phone_number
+                user = authenticate(
+                    request,
+                    # Django uses username field for authentication
+                    username=phone_number,
+                    password=serializer.validated_data['password'])
+            except:
+                return Response({
+                    'success': False,
+                    'message': 'Invalid credentials'
+                }, status=status.HTTP_401_UNAUTHORIZED)
             if user:
                 tokens = get_tokens_for_user(user)
                 return Response({
@@ -286,30 +295,72 @@ class EmailLoginView(views.APIView):
                     'success': False,
                     'message': 'Invalid credentials'
                 }, status=status.HTTP_401_UNAUTHORIZED)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PhoneLoginView(views.APIView):
     permission_classes = [AllowAny]
-    
+
+    def post(self, request):
+        serializer = PhoneLoginSerializer(data=request.data)
+        if serializer.is_valid():
+            try:
+                user = authenticate(
+                    request,
+                    # Django uses username field for authentication
+                    username=serializer.validated_data['phone_number'],
+                    password=serializer.validated_data['password'])
+            except:
+                return Response({
+                    'success': False,
+                    'message': 'Invalid credentials'
+                }, status=status.HTTP_401_UNAUTHORIZED)
+
+            if user:
+                tokens = get_tokens_for_user(user)
+                return Response({
+                    'success': True,
+                    'tokens': tokens,
+                    'user': {
+                        'id': user.id,
+                        'email': user.email,
+                        'name': user.name,
+                        'user_type': user.user_type,
+                        'email_verified': user.email_verified,
+                        'phone_verified': user.phone_verified
+                    }
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    'success': False,
+                    'message': 'Invalid credentials'
+                }, status=status.HTTP_401_UNAUTHORIZED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PhoneLoginViewOld(views.APIView):
+    permission_classes = [AllowAny]
+
     def post(self, request):
         # Step 1: Request a verification code
         if 'phone_number' in request.data and 'code' not in request.data:
             try:
-                user = User.objects.get(phone_number=request.data['phone_number'], phone_verified=True)
+                user = User.objects.get(
+                    phone_number=request.data['phone_number'], phone_verified=True)
                 code = generate_verification_code()
                 expiry = timezone.now() + timedelta(minutes=5)
-                
+
                 VerificationCode.objects.create(
                     user=user,
                     code=code,
                     code_type='phone',
                     expires_at=expiry
                 )
-                
+
                 send_sms_verification(user.phone_number, code)
-                
+
                 return Response({
                     'success': True,
                     'message': 'Verification code sent to your phone'
@@ -319,12 +370,13 @@ class PhoneLoginView(views.APIView):
                     'success': False,
                     'message': 'Phone number not found or not verified'
                 }, status=status.HTTP_404_NOT_FOUND)
-        
+
         # Step 2: Verify the code and log in
         serializer = PhoneLoginSerializer(data=request.data)
         if serializer.is_valid():
             try:
-                user = User.objects.get(phone_number=serializer.validated_data['phone_number'])
+                user = User.objects.get(
+                    phone_number=serializer.validated_data['phone_number'])
                 verification = VerificationCode.objects.filter(
                     user=user,
                     code=serializer.validated_data['code'],
@@ -332,12 +384,12 @@ class PhoneLoginView(views.APIView):
                     is_used=False,
                     expires_at__gt=timezone.now()
                 ).latest('created_at')
-                
+
                 verification.is_used = True
                 verification.save()
-                
+
                 tokens = get_tokens_for_user(user)
-                
+
                 return Response({
                     'success': True,
                     'tokens': tokens,
@@ -355,34 +407,35 @@ class PhoneLoginView(views.APIView):
                     'success': False,
                     'message': 'Invalid verification code'
                 }, status=status.HTTP_400_BAD_REQUEST)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class GoogleLoginView(views.APIView):
     permission_classes = [AllowAny]
-    
+
     def post(self, request):
         serializer = GoogleLoginSerializer(data=request.data)
         if serializer.is_valid():
             token = serializer.validated_data['token']
-            
+
             try:
                 # Specify the CLIENT_ID of your app
                 # This should be added to settings.py in a real app
                 CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID"
-                idinfo = id_token.verify_oauth2_token(token, requests.Request(), CLIENT_ID)
-                
+                idinfo = id_token.verify_oauth2_token(
+                    token, requests.Request(), CLIENT_ID)
+
                 # Check that the token is valid
                 if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
                     return Response({
                         'success': False,
                         'message': 'Invalid token issuer'
                     }, status=status.HTTP_401_UNAUTHORIZED)
-                
+
                 # Get or create user with Google email
                 email = idinfo['email']
-                
+
                 try:
                     user = User.objects.get(email=email)
                 except User.DoesNotExist:
@@ -394,10 +447,10 @@ class GoogleLoginView(views.APIView):
                     )
                     user.email_verified = True  # Google has already verified the email
                     user.save()
-                
+
                 # Generate JWT tokens
                 tokens = get_tokens_for_user(user)
-                
+
                 return Response({
                     'success': True,
                     'tokens': tokens,
@@ -410,38 +463,38 @@ class GoogleLoginView(views.APIView):
                         'phone_verified': user.phone_verified
                     }
                 }, status=status.HTTP_200_OK)
-                
+
             except ValueError:
                 return Response({
                     'success': False,
                     'message': 'Invalid token'
                 }, status=status.HTTP_401_UNAUTHORIZED)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ResendVerificationView(views.APIView):
     permission_classes = [IsAuthenticated]
-    
+
     def post(self, request):
         verification_type = request.data.get('type', 'email')
         user = request.user
-        
+
         if verification_type == 'email':
             # Resend email verification
             if not user.email_verified:
                 code = generate_verification_code()
                 expiry = timezone.now() + timedelta(minutes=30)
-                
+
                 VerificationCode.objects.create(
                     user=user,
                     code=code,
                     code_type='email',
                     expires_at=expiry
                 )
-                
+
                 send_verification_email(user, code)
-                
+
                 return Response({
                     'success': True,
                     'message': 'Verification email sent'
@@ -451,22 +504,22 @@ class ResendVerificationView(views.APIView):
                     'success': False,
                     'message': 'Email already verified'
                 }, status=status.HTTP_400_BAD_REQUEST)
-        
+
         elif verification_type == 'phone':
             # Resend phone verification
             if not user.phone_verified and user.phone_number:
                 code = generate_verification_code()
                 expiry = timezone.now() + timedelta(minutes=30)
-                
+
                 VerificationCode.objects.create(
                     user=user,
                     code=code,
                     code_type='phone',
                     expires_at=expiry
                 )
-                
+
                 send_sms_verification(user.phone_number, code)
-                
+
                 return Response({
                     'success': True,
                     'message': 'Verification SMS sent'
@@ -476,7 +529,7 @@ class ResendVerificationView(views.APIView):
                     'success': False,
                     'message': 'Phone already verified or no phone number provided'
                 }, status=status.HTTP_400_BAD_REQUEST)
-        
+
         return Response({
             'success': False,
             'message': 'Invalid verification type'
@@ -486,7 +539,7 @@ class ResendVerificationView(views.APIView):
 class TokenRefreshView(views.APIView):
     """View for refreshing JWT tokens"""
     permission_classes = [AllowAny]
-    
+
     def post(self, request):
         refresh_token = request.data.get('refresh')
         if not refresh_token:
@@ -494,11 +547,11 @@ class TokenRefreshView(views.APIView):
                 'success': False,
                 'message': 'Refresh token is required'
             }, status=status.HTTP_400_BAD_REQUEST)
-        
+
         try:
             refresh = RefreshToken(refresh_token)
             access_token = str(refresh.access_token)
-            
+
             return Response({
                 'success': True,
                 'access': access_token
